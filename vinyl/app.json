@@ -40,12 +40,10 @@
         }
       ],
       "expo-web-browser",
-      "expo-secure-store",
-      "@sentry/react-native"
+      "expo-secure-store"
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
     }
   }
 }

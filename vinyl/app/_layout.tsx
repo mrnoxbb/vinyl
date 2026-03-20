@@ -8,9 +8,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ErrorBoundary } from '@/components/error-boundary';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { initSentry } from '@/lib/sentry';
-
-initSentry();
 
 export const unstable_settings = {
   anchor: '(tabs)',
