@@ -69,6 +69,18 @@ export function ReviewModal({
     setLoading(true);
     const supabase = createClient();
     try {
+      // Content moderation — only check if body is non-empty
+      if (body.trim()) {
+        const filterResult = await supabase.functions.invoke('filter-review-body', {
+          body: { body: body.trim() },
+        });
+        if (filterResult.data?.flagged) {
+          setError('Your review contains content that violates our community guidelines. Please revise it.');
+          setLoading(false);
+          return;
+        }
+      }
+
       let review: Review;
       if (existingReviewId) {
         review = await updateReview(supabase, existingReviewId, target, { rating, body: body || null, hasSpoiler });
