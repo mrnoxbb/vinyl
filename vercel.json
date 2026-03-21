@@ -1,6 +1,6 @@
 {
-  "buildCommand": "pnpm turbo run build --filter=@vinyl/web...",
-  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs",
   "installCommand": "pnpm install",
-  "framework": "nextjs"
+  "buildCommand": "pnpm turbo run build --filter=@vinyl/web...",
+  "outputDirectory": ".next"
 }
