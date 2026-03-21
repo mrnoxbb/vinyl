@@ -79,55 +79,53 @@ export function ReviewCard({ review, currentUserId, onDeleted, onEdited }: Revie
 
   return (
     <>
-      <article className="review-card">
+      <article className="group relative bg-[#0a0a0a] border border-white/5 rounded-xl p-5 transition-all duration-300 hover:bg-[#111] hover:shadow-glow hover:-translate-y-1">
         {/* User info row */}
-        <div className="review-user">
-          <div className="review-avatar">
-            {user?.avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={user.avatarUrl} alt={user.displayName} />
-            ) : (
-              initials
-            )}
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#111] border border-white/10 flex items-center justify-center text-sm font-outfit text-white flex-shrink-0 overflow-hidden shadow-md">
+              {user?.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={user.avatarUrl} alt={user.displayName ?? ''} className="w-full h-full object-cover" />
+              ) : (
+                initials
+              )}
+            </div>
+            <div className="flex flex-col">
+              {user ? (
+                <Link href={`/user/${user.username}`} className="text-base font-outfit font-medium text-white hover:text-[#E53935] transition-colors">
+                  {user.displayName || user.username}
+                </Link>
+              ) : (
+                <span className="text-base font-outfit font-medium text-white">Anonymous</span>
+              )}
+              <span className="font-mono text-[#444] text-[0.7rem] uppercase tracking-widest mt-0.5">{timeAgo(review.createdAt)}</span>
+            </div>
           </div>
-          <div className="review-meta">
-            {user ? (
-              <Link href={`/user/${user.username}`} className="review-username">
-                {user.displayName || user.username}
-              </Link>
-            ) : (
-              <span className="review-username">Anonymous</span>
-            )}
-            <span className="review-time">{timeAgo(review.createdAt)}</span>
-          </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <HalfStarDisplay rating={review.rating} size={14} />
+          <div className="flex items-center gap-3">
+            <HalfStarDisplay rating={review.rating} size={16} />
             {isOwn && (
               <div ref={menuRef} style={{ position: 'relative' }}>
                 <button
                   type="button"
                   onClick={() => setMenuOpen(p => !p)}
-                  style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '1rem', padding: '0 4px' }}
+                  className="text-[#666] hover:text-white transition-colors px-1"
                   aria-label="Review options"
                 >
                   ···
                 </button>
                 {menuOpen && (
-                  <div style={{
-                    position: 'absolute', right: 0, top: '100%', zIndex: 20,
-                    background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 8,
-                    minWidth: 120, overflow: 'hidden', marginTop: 4,
-                  }}>
+                  <div className="absolute right-0 top-full mt-2 z-20 bg-[#111] border border-white/10 rounded-lg overflow-hidden min-w-[140px] shadow-2xl animate-fade-in">
                     <button
                       type="button"
-                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.875rem' }}
+                      className="block w-full text-left px-4 py-2.5 font-outfit text-sm text-[#e0e0e0] hover:bg-white/5 transition-colors"
                       onClick={() => { setMenuOpen(false); setEditOpen(true); }}
                     >
-                      Edit
+                      Edit Review
                     </button>
                     <button
                       type="button"
-                      style={{ display: 'block', width: '100%', textAlign: 'left', padding: '0.6rem 1rem', background: 'none', border: 'none', color: '#E24B4A', cursor: 'pointer', fontSize: '0.875rem' }}
+                      className="block w-full text-left px-4 py-2.5 font-outfit text-sm text-[#E53935] hover:bg-[#E53935]/10 transition-colors border-t border-white/5"
                       onClick={() => { setMenuOpen(false); setDeleteConfirm(true); }}
                     >
                       Delete
@@ -140,25 +138,23 @@ export function ReviewCard({ review, currentUserId, onDeleted, onEdited }: Revie
         </div>
 
         {/* Item */}
-        <div className="review-item">
+        <Link href={`/item/${review.spotifyId}?type=${review.kind}`} className="flex items-center gap-4 bg-black/40 p-3 rounded-lg border border-white/5 hover:border-white/10 transition-colors mb-4 group/item">
           {review.target.artworkUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={review.target.artworkUrl} alt={review.target.title} className="review-artwork" />
+            <img src={review.target.artworkUrl} alt={review.target.title} className="w-16 h-16 rounded shadow-md object-cover flex-shrink-0 group-hover/item:scale-105 transition-transform" />
           ) : (
-            <div className="review-artwork-placeholder" />
+            <div className="w-16 h-16 rounded bg-[#111] shadow-md flex-shrink-0" />
           )}
-          <div className="review-item-info">
-            <Link href={`/item/${review.spotifyId}?type=${review.kind}`} className="review-item-title">
-              {review.target.title}
-            </Link>
-            <span className="review-item-artist">{review.target.artist}</span>
+          <div className="flex flex-col min-w-0">
+            <span className="font-playfair text-lg font-semibold text-white truncate">{review.target.title}</span>
+            <span className="font-outfit text-sm text-[#888] truncate">{review.target.artist}</span>
           </div>
-        </div>
+        </Link>
 
         {/* Body */}
         {review.body && (
           <p
-            className={`review-body${review.hasSpoiler && !spoilerRevealed ? ' review-body-blurred' : ''}`}
+            className={`font-outfit text-[#c7c7c7] text-[1.05rem] leading-[1.7] mb-4 ${review.hasSpoiler && !spoilerRevealed ? 'blur-md cursor-pointer select-none opacity-60' : ''}`}
             onClick={() => review.hasSpoiler && setSpoilerRevealed(true)}
             title={review.hasSpoiler && !spoilerRevealed ? 'Click to reveal spoiler' : undefined}
           >
@@ -167,18 +163,19 @@ export function ReviewCard({ review, currentUserId, onDeleted, onEdited }: Revie
         )}
 
         {/* Actions */}
-        <div className="review-actions">
+        <div className="flex items-center justify-between mt-2 pt-4 border-t border-white/5">
           <button
-            className="like-button"
+            className={`inline-flex items-center gap-1.5 font-mono text-[0.8rem] rounded-md px-2.5 py-1 transition-all ${liked ? 'text-[#E53935] bg-[#E53935]/10' : 'text-[#666] hover:text-white hover:bg-white/5'}`}
             type="button"
             data-liked={liked}
             onClick={toggleLike}
             aria-label={liked ? 'Unlike' : 'Like'}
           >
-            ♥{likeCount > 0 ? ` ${likeCount}` : ''}
+            ♥ {likeCount > 0 && <span className="font-bold">{likeCount}</span>}
           </button>
+          
           {review.hasSpoiler && !spoilerRevealed && (
-            <span style={{ fontSize: '0.75rem', color: '#666' }}>⚠ Spoiler</span>
+            <span className="font-mono text-[0.7rem] uppercase tracking-wider text-[#666] bg-[#111] px-2 py-1 rounded">⚠ Spoiler</span>
           )}
         </div>
       </article>
@@ -196,21 +193,21 @@ export function ReviewCard({ review, currentUserId, onDeleted, onEdited }: Revie
 
       {/* Delete confirmation */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.75)' }}>
-          <div className="bg-[#111] border border-[#2a2a2a] rounded-xl p-6 w-full max-w-sm">
-            <h3 className="text-white font-semibold mb-1">Delete this review?</h3>
-            <p className="text-[#a0a0a0] text-sm mb-4">This cannot be undone.</p>
-            {deleteError && <p className="text-[#E24B4A] text-sm mb-3">{deleteError}</p>}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-[#0a0a0a] border border-white/10 rounded-xl p-8 w-full max-w-sm shadow-2xl">
+            <h3 className="text-white font-playfair text-2xl font-semibold mb-2">Delete Review</h3>
+            <p className="text-[#a0a0a0] font-outfit text-sm mb-6">Are you sure? This cannot be undone.</p>
+            {deleteError && <p className="text-[#E53935] text-sm mb-4">{deleteError}</p>}
             <div className="flex gap-3 justify-end">
               <button
-                className="border border-[#2a2a2a] text-[#a0a0a0] rounded-lg px-4 py-2 text-sm hover:border-[#333] transition-colors"
+                className="button px-5 py-2"
                 onClick={() => { setDeleteConfirm(false); setDeleteError(''); }}
                 disabled={deleting}
               >
                 Cancel
               </button>
               <button
-                className="bg-[#E24B4A] text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-[#c43f3e] transition-colors"
+                className="button button-primary bg-[#E53935] border-[#E53935] px-5 py-2"
                 onClick={handleDelete}
                 disabled={deleting}
               >

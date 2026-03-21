@@ -118,12 +118,14 @@ export function UserProfileClient({
   return (
     <>
       {/* Profile header */}
-      <div className="bg-[#111111] border border-[#2a2a2a] rounded-xl p-6 mb-6">
-        <div className="flex items-start gap-4 mb-4">
+      <div className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-8 mb-8 shadow-cinematic relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#E53935]/5 rounded-full blur-[80px] -mr-10 -mt-20 pointer-events-none" />
+        
+        <div className="relative flex items-start gap-6 mb-6">
           {/* Avatar */}
           <div
-            className="w-20 h-20 rounded-full flex-shrink-0 flex items-center justify-center text-xl font-bold text-white overflow-hidden"
-            style={{ background: profile.avatarUrl ? 'transparent' : '#534AB7' }}
+            className="w-24 h-24 rounded-full flex-shrink-0 flex items-center justify-center text-3xl font-playfair font-bold text-white overflow-hidden border-2 border-[#1a1a1a] shadow-lg shadow-black/50"
+            style={{ background: profile.avatarUrl ? 'transparent' : '#111' }}
           >
             {profile.avatarUrl
               // eslint-disable-next-line @next/next/no-img-element
@@ -131,34 +133,34 @@ export function UserProfileClient({
               : initials}
           </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl font-bold text-white">{profile.displayName}</h1>
+          <div className="flex-1 min-w-0 flex flex-col pt-1">
+            <div className="flex items-center gap-3 flex-wrap mb-1">
+              <h1 className="text-3xl font-playfair font-bold text-white tracking-tight leading-none">{profile.displayName}</h1>
               {profile.isCriticVerified && (
-                <span className="text-xs bg-[#1D9E75]/20 text-[#1D9E75] px-2 py-0.5 rounded-full">✓ Critic</span>
+                <span className="text-[0.65rem] font-mono tracking-widest uppercase bg-[#E53935]/10 text-[#E53935] px-2 py-0.5 rounded border border-[#E53935]/20">Critic</span>
               )}
             </div>
-            <p className="text-[#a0a0a0] text-sm">@{profile.username}</p>
+            <p className="text-[#888] font-outfit text-sm">@{profile.username}</p>
             <span
-              className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-semibold"
-              style={{ background: `${levelColor}22`, color: levelColor }}
+              className="inline-block mt-3 text-[0.65rem] font-mono tracking-widest uppercase px-2.5 py-1 rounded"
+              style={{ background: `${levelColor}15`, border: `1px solid ${levelColor}30`, color: levelColor }}
             >
               {profile.level}
             </span>
           </div>
 
           {/* Action buttons */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 pt-2 z-10">
             {isOwnProfile ? (
-              <button className="border border-[#534AB7] text-[#534AB7] rounded-lg px-4 py-2 text-sm hover:bg-[#534AB7] hover:text-white transition-colors">
+              <button className="button py-1.5 px-4 text-sm font-outfit">
                 Edit Profile
               </button>
             ) : currentUserId ? (
               <button
-                className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+                className={`button py-1.5 px-4 text-sm font-outfit ${
                   following
-                    ? 'border border-[#2a2a2a] text-[#a0a0a0] hover:border-[#E24B4A] hover:text-[#E24B4A]'
-                    : 'bg-[#534AB7] text-white hover:bg-[#4a42a3]'
+                    ? 'border border-white/10 text-[#a0a0a0] hover:border-[#E53935] hover:text-[#E53935]'
+                    : 'button-primary'
                 }`}
                 onClick={handleFollow}
                 disabled={followLoading}
@@ -170,21 +172,21 @@ export function UserProfileClient({
         </div>
 
         {/* Stats row */}
-        <div className="flex gap-6 text-center">
+        <div className="flex flex-wrap gap-6 sm:gap-8 border-t border-white/5 pt-6 relative z-10">
           {[
             { label: 'Reviews', value: reviews.length },
             { label: 'Followers', value: followerCount },
             { label: 'Following', value: followCounts.following },
           ].map(s => (
-            <div key={s.label}>
-              <p className="text-white font-bold text-lg leading-tight">{s.value}</p>
-              <p className="text-[#a0a0a0] text-xs">{s.label}</p>
+            <div key={s.label} className="flex flex-col">
+              <span className="font-playfair text-2xl font-bold text-white mb-0.5">{s.value}</span>
+              <span className="font-mono text-[0.65rem] uppercase tracking-widest text-[#666]">{s.label}</span>
             </div>
           ))}
           {profile.reviewStreak > 0 && (
-            <div>
-              <p className="text-white font-bold text-lg leading-tight">🔥 {profile.reviewStreak}</p>
-              <p className="text-[#a0a0a0] text-xs">Day streak</p>
+            <div className="flex flex-col border-l border-white/10 pl-8 ml-auto text-right">
+              <span className="font-playfair text-2xl font-bold text-[#E53935] mb-0.5">{profile.reviewStreak}</span>
+              <span className="font-mono text-[0.65rem] uppercase tracking-widest text-[#E53935]/60 block w-full">Day Streak 🔥</span>
             </div>
           )}
         </div>
@@ -217,18 +219,19 @@ export function UserProfileClient({
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-[#2a2a2a] mb-6">
+      <div className="flex gap-6 border-b border-white/5 mb-8">
         {(['reviews', 'lists'] as Tab[]).map(t => (
           <button
             key={t}
-            className={`px-4 py-2 text-sm font-semibold capitalize transition-colors border-b-2 -mb-px ${
+            className={`pb-3 font-outfit text-sm tracking-wide transition-colors relative ${
               tab === t
-                ? 'border-[#534AB7] text-white'
-                : 'border-transparent text-[#a0a0a0] hover:text-white'
+                ? 'text-white font-medium'
+                : 'text-[#666] hover:text-[#a0a0a0]'
             }`}
             onClick={() => setTab(t)}
           >
             {t === 'reviews' ? `Reviews (${reviews.length})` : `Lists (${initialLists.length})`}
+            {tab === t && <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#E53935]" />}
           </button>
         ))}
       </div>

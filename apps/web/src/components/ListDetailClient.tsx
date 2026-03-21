@@ -61,39 +61,38 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-[#111] transition-colors group"
+      className="flex items-center gap-4 px-4 py-3 bg-[#0a0a0a] border border-white/5 rounded-xl mb-2 hover:border-[#E53935]/30 hover:-translate-x-1 hover:shadow-glow transition-all group group-item"
     >
       {/* Rank */}
-      <span style={{ minWidth: 28, color: '#666', fontSize: '1.25rem', fontWeight: 700, textAlign: 'center', flexShrink: 0 }}>
+      <span className="font-playfair text-2xl font-bold italic text-[#444] min-w-[32px] text-center flex-shrink-0 group-hover:text-[#E53935] transition-colors">
         {index + 1}
       </span>
 
       {/* Artwork */}
       {item.artworkUrl
         // eslint-disable-next-line @next/next/no-img-element
-        ? <img src={item.artworkUrl} alt={item.title} style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
-        : <div style={{ width: 48, height: 48, borderRadius: 8, background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', flexShrink: 0, fontSize: 18 }}>♪</div>
+        ? <img src={item.artworkUrl} alt={item.title} className="w-12 h-12 rounded shadow-md object-cover flex-shrink-0 group-hover:scale-105 transition-transform" />
+        : <div className="w-12 h-12 rounded bg-[#111] border border-white/5 shadow-md flex items-center justify-center text-[#333] flex-shrink-0 font-playfair italic">♪</div>
       }
 
       {/* Info */}
       <a href={`/item/${item.spotifyId}?type=${item.entityType}`} className="flex-1 min-w-0" style={{ textDecoration: 'none' }}>
-        <p className="text-white text-sm font-medium truncate">{item.title}</p>
-        {item.artist && <p className="text-[#a0a0a0] text-xs truncate">{item.artist}</p>}
-        {item.note && <p className="text-[#666666] text-xs italic truncate">{item.note}</p>}
+        <p className="text-white text-base font-outfit font-semibold truncate tracking-wider">{item.title}</p>
+        {item.artist && <p className="text-[#888] font-outfit text-sm truncate uppercase tracking-widest">{item.artist}</p>}
+        {item.note && <p className="text-[#c0c0c0] font-playfair text-[0.9rem] italic mt-1 bg-white/5 px-2 py-1 rounded-md inline-block max-w-full truncate border border-white/5 shadow-sm">{item.note}</p>}
       </a>
 
       {/* Actions */}
       {isOwner && (
-        <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-3 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => onRemove(item.id)}
-            className="text-[#444] hover:text-[#E24B4A] transition-colors opacity-0 group-hover:opacity-100 text-xs"
+            className="text-[#444] hover:text-[#E53935] transition-colors opacity-0 group-hover:opacity-100 flex items-center justify-center w-6 h-6 rounded-full hover:bg-[#E53935]/10"
           >✕</button>
           <span
             {...attributes}
             {...listeners}
-            style={{ color: '#2a2a2a', cursor: 'grab', fontSize: '1rem', userSelect: 'none' }}
-            className="group-hover:text-[#555] transition-colors"
+            className="text-[#444] hover:text-white cursor-grab active:cursor-grabbing text-xl transition-colors select-none"
           >⠿</span>
         </div>
       )}

@@ -55,12 +55,20 @@ export default function SignupPage() {
 
   return (
     <div className="auth-screen">
+      <div className="auth-ghosts">
+        <div className="w-64 h-64 bg-red-900 rounded-sm opacity-20 blur-[80px] animate-drift-slow absolute top-10 left-[10%]"></div>
+        <div className="w-80 h-80 bg-blue-900 rounded-sm opacity-20 blur-[100px] animate-drift-slower absolute bottom-10 right-[10%]"></div>
+        <div className="w-72 h-72 bg-purple-900 rounded-sm opacity-20 blur-[90px] animate-drift-slow absolute top-[40%] left-[60%] border" style={{ animationDirection: 'reverse' }}></div>
+      </div>
       <div className="auth-card">
         <div className="auth-logo">VINYL</div>
-        <h1 className="auth-heading">Create your account</h1>
+        <div>
+          <h1 className="auth-heading">Create your account</h1>
+          <p className="auth-subheading">Join the community. Let's talk about music.</p>
+        </div>
 
         {success ? (
-          <p className="auth-success">
+          <p className="auth-success text-center italic py-4">
             Check your email to confirm your account.
           </p>
         ) : (
@@ -129,7 +137,7 @@ export default function SignupPage() {
           </form>
         )}
 
-        <p className="auth-footer">
+        <p className="auth-footer" style={{ marginTop: success ? '1rem' : '0' }}>
           Already have an account?{' '}
           <Link href="/login" className="auth-link">Sign in</Link>
         </p>

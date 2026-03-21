@@ -34,9 +34,17 @@ function LoginForm() {
 
   return (
     <div className="auth-screen">
+      <div className="auth-ghosts">
+        <div className="w-64 h-64 bg-red-900 rounded-sm opacity-20 blur-[80px] animate-drift-slow absolute top-10 left-[10%]"></div>
+        <div className="w-80 h-80 bg-blue-900 rounded-sm opacity-20 blur-[100px] animate-drift-slower absolute bottom-10 right-[10%]"></div>
+        <div className="w-72 h-72 bg-purple-900 rounded-sm opacity-20 blur-[90px] animate-drift-slow absolute top-[40%] left-[60%]" style={{ animationDirection: 'reverse' }}></div>
+      </div>
       <div className="auth-card">
         <div className="auth-logo">VINYL</div>
-        <h1 className="auth-heading">Welcome back</h1>
+        <div>
+          <h1 className="auth-heading">Welcome back</h1>
+          <p className="auth-subheading">Enter your details to sign in.</p>
+        </div>
 
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <div className="auth-field">
@@ -75,7 +83,7 @@ function LoginForm() {
         <p className="auth-footer">
           <Link href="/forgot-password" className="auth-link">Forgot your password?</Link>
         </p>
-        <p className="auth-footer">
+        <p className="auth-footer" style={{ marginTop: '-0.5rem' }}>
           Don&apos;t have an account?{' '}
           <Link href="/signup" className="auth-link">Sign up</Link>
         </p>

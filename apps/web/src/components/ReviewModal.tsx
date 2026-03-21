@@ -148,29 +148,28 @@ export function ReviewModal({
     return (
       <>
         <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div ref={panelRef} className="modal-panel" style={{ maxWidth: 400, textAlign: 'center' }}>
-            <div style={{ fontSize: 48, marginBottom: 12 }}>🔥</div>
-            <h2 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 700, margin: '0 0 8px' }}>
-              {milestoneCelebration}-Day Streak!
+          <div ref={panelRef} className="modal-panel" style={{ maxWidth: 440, textAlign: 'center', padding: '3.5rem 2rem' }}>
+            <div style={{ fontSize: 64, marginBottom: 16, animation: 'pulse-slow 2s infinite' }}>🔥</div>
+            <h2 style={{ fontFamily: 'var(--font-playfair)', color: '#fff', fontSize: '2.5rem', fontWeight: 600, margin: '0 0 12px', letterSpacing: '-0.02em' }}>
+              {milestoneCelebration}-Day Streak
             </h2>
-            <p style={{ color: '#a0a0a0', fontSize: '0.95rem', margin: '0 0 12px' }}>
-              You&apos;ve reviewed music {milestoneCelebration} days in a row
+            <p style={{ fontFamily: 'var(--font-outfit)', color: '#a0a0a0', fontSize: '1.05rem', margin: '0 0 16px' }}>
+              You've reviewed music {milestoneCelebration} days in a row.
             </p>
             {badgeLabel && (
-              <p style={{ color: '#BA7517', fontSize: '0.875rem', marginBottom: 20 }}>
+              <p style={{ fontFamily: 'var(--font-mono)', color: '#E53935', fontSize: '0.85rem', marginBottom: 32, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                 🏆 You earned the {milestoneLabel}-Day Streak badge!
               </p>
             )}
             <button
               className="button button-primary"
               onClick={() => { setMilestoneCelebration(0); onClose(); }}
-              style={{ minWidth: 120 }}
+              style={{ minWidth: 140, margin: '0 auto', display: 'flex' }}
             >
               Continue
             </button>
           </div>
         </div>
-        <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }`}</style>
       </>
     );
   }
@@ -182,85 +181,94 @@ export function ReviewModal({
   return (
     <>
     {streakToast > 0 && <StreakToast streak={streakToast} onDone={() => setStreakToast(0)} />}
-    <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }`}</style>
     <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={handleBackdropClick}>
-      <div ref={panelRef} className="modal-panel" style={{ maxWidth: 480 }}>
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
-          <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'center', minWidth: 0 }}>
-            {target.artworkUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={target.artworkUrl} alt={target.title} style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
-            ) : (
-              <div style={{ width: 64, height: 64, borderRadius: 8, background: '#1a1a1a', flexShrink: 0 }} />
-            )}
-            <div style={{ minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: '0.7rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
-                {isEdit ? 'Editing review' : target.kind}
-              </p>
-              <h2 style={{ margin: '0.15rem 0 0', fontSize: '1.1rem', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {target.title}
-              </h2>
-              <p style={{ margin: '0.1rem 0 0', fontSize: '0.85rem', color: '#a0a0a0' }}>{target.artist}</p>
-            </div>
-          </div>
+      <div ref={panelRef} className="modal-panel" style={{ maxWidth: 540, padding: 0, overflow: 'hidden', background: '#0a0a0a' }}>
+        {/* Header - Album hero feel */}
+        <div style={{ position: 'relative', padding: '2.5rem 2.5rem 1.5rem', background: 'linear-gradient(to bottom, rgba(15,15,15,0.8), #0a0a0a)' }}>
+          {target.artworkUrl && (
+            <div style={{ position: 'absolute', top: -40, left: 0, right: 0, height: 200, backgroundImage: `url(${target.artworkUrl})`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(60px) opacity(0.15)', pointerEvents: 'none', zIndex: 0 }}></div>
+          )}
+          
           <button
             type="button"
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '1.25rem', lineHeight: 1, padding: '0.25rem', flexShrink: 0 }}
+            style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', color: '#a0a0a0', cursor: 'pointer', fontSize: '1.2rem', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, transition: 'all 0.2s' }}
             aria-label="Close"
+            onMouseOver={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.color = '#a0a0a0'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
           >
             ×
           </button>
+
+          <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', position: 'relative', zIndex: 5 }}>
+            {target.artworkUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={target.artworkUrl} alt={target.title} style={{ width: 80, height: 80, borderRadius: 6, objectFit: 'cover', flexShrink: 0, boxShadow: '0 12px 24px rgba(0,0,0,0.6)' }} />
+            ) : (
+              <div style={{ width: 80, height: 80, borderRadius: 6, background: '#111', flexShrink: 0, boxShadow: '0 12px 24px rgba(0,0,0,0.6)' }} />
+            )}
+            <div style={{ minWidth: 0, paddingTop: '0.25rem' }}>
+              <p style={{ margin: 0, fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: '#E53935', textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 600 }}>
+                {isEdit ? 'Editing Review' : target.kind}
+              </p>
+              <h2 style={{ margin: '0.5rem 0 0', fontFamily: 'var(--font-playfair)', fontSize: '1.6rem', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
+                {target.title}
+              </h2>
+              <p style={{ margin: '0.25rem 0 0', fontFamily: 'var(--font-outfit)', fontSize: '0.95rem', color: '#a0a0a0' }}>{target.artist}</p>
+            </div>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
-          {/* Star rating */}
-          <div>
-            <StarRating rating={rating} onChange={setRating} size={32} />
-            {rating > 0 && (
-              <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: '#7F77DD' }}>
-                <HalfStarDisplay rating={rating} size={12} showLabel />
-              </p>
-            )}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+          <div style={{ padding: '0 2.5rem' }}>
+            {/* Star rating */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+              <StarRating rating={rating} onChange={setRating} size={36} />
+              {rating > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(229,57,53,0.1)', padding: '0.35rem 0.75rem', borderRadius: 999, border: '1px solid rgba(229,57,53,0.2)' }}>
+                  <HalfStarDisplay rating={rating} size={14} />
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: '#E53935', fontWeight: 600 }}>
+                    {rating.toFixed(1)}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Review body - Journal style */}
+            <div style={{ position: 'relative', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1.5rem' }}>
+              <textarea
+                className="modal-textarea"
+                maxLength={MAX_REVIEW_BODY}
+                placeholder="What did this make you feel? (optional)"
+                rows={6}
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                style={{ resize: 'none', background: 'transparent', border: 'none', boxShadow: 'none', padding: '0', fontSize: '1.1rem', lineHeight: 1.6, fontFamily: 'var(--font-playfair)', color: '#e0e0e0' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+                {/* Spoiler toggle */}
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', fontFamily: 'var(--font-outfit)', fontSize: '0.85rem', color: '#888' }}>
+                  <input
+                    type="checkbox"
+                    checked={hasSpoiler}
+                    onChange={(e) => setHasSpoiler(e.target.checked)}
+                    style={{ accentColor: '#E53935', width: 16, height: 16 }}
+                  />
+                  Contains spoilers
+                </label>
+                
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: nearLimit ? '#E53935' : '#444' }}>
+                  {remaining}
+                </span>
+              </div>
+            </div>
+
+            {error && <p style={{ margin: '1rem 0 0', color: '#E53935', fontFamily: 'var(--font-outfit)', fontSize: '0.9rem' }}>{error}</p>}
           </div>
-
-          {/* Review body */}
-          <div style={{ position: 'relative' }}>
-            <textarea
-              className="modal-textarea"
-              maxLength={MAX_REVIEW_BODY}
-              placeholder="Write your review… (optional)"
-              rows={5}
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              style={{ resize: 'vertical' }}
-            />
-            <span style={{
-              position: 'absolute', bottom: '0.6rem', right: '0.75rem',
-              fontSize: '0.75rem', color: nearLimit ? '#E24B4A' : '#666',
-              pointerEvents: 'none',
-            }}>
-              {remaining}
-            </span>
-          </div>
-
-          {/* Spoiler toggle */}
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem', color: '#a0a0a0' }}>
-            <input
-              type="checkbox"
-              checked={hasSpoiler}
-              onChange={(e) => setHasSpoiler(e.target.checked)}
-              style={{ accentColor: '#534AB7' }}
-            />
-            Contains spoilers
-          </label>
-
-          {error && <p style={{ margin: 0, color: '#E24B4A', fontSize: '0.85rem' }}>{error}</p>}
 
           {/* Actions */}
-          <div className="modal-actions">
-            <button className="button" type="button" onClick={onClose} disabled={loading}>
+          <div style={{ marginTop: '2rem', padding: '1.5rem 2.5rem', background: 'rgba(5,5,5,0.5)', borderTop: '1px solid rgba(255,255,255,0.04)', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+            <button className="button" type="button" onClick={onClose} disabled={loading} style={{ background: 'transparent', borderColor: 'rgba(255,255,255,0.1)' }}>
               Cancel
             </button>
             <button
@@ -268,7 +276,7 @@ export function ReviewModal({
               type="submit"
               disabled={rating === 0 || loading}
             >
-              {loading ? (isEdit ? 'Saving…' : 'Posting…') : (isEdit ? 'Save Changes' : 'Post Review')}
+              {loading ? (isEdit ? 'Saving…' : 'Publishing…') : (isEdit ? 'Save Changes' : 'Publish Review')}
             </button>
           </div>
         </form>

@@ -121,20 +121,20 @@ export function ItemReviewSection({ target, initialReviews, initialStats, curren
   return (
     <>
       {/* Write a review CTA */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-white">
-          Community reviews ({stats.reviewCount})
+      <div className="flex items-end justify-between mb-8 border-b border-white/5 pb-4">
+        <h2 className="text-sm font-mono tracking-widest uppercase text-[#666]">
+          Community Voices ({stats.reviewCount})
         </h2>
         {currentUserId && (
           <button
-            className="bg-[#534AB7] text-white rounded-lg px-4 py-2 text-sm font-semibold hover:bg-[#4a42a3] transition-colors"
+            className="button button-primary py-1.5 px-4 text-sm font-outfit"
             onClick={() => { setEditReview(null); setModalOpen(true); }}
           >
             {userReview ? 'Edit Review' : 'Write a Review'}
           </button>
         )}
         {!currentUserId && (
-          <a href="/login" className="border border-[#534AB7] text-[#534AB7] rounded-lg px-4 py-2 text-sm hover:bg-[#534AB7] hover:text-white transition-colors">
+          <a href="/login" className="button py-1.5 px-4 text-sm font-outfit">
             Sign in to review
           </a>
         )}
@@ -169,14 +169,14 @@ export function ItemReviewSection({ target, initialReviews, initialStats, curren
 
       {/* Sort controls */}
       {reviews.length > 1 && (
-        <div className="flex gap-3 mb-4">
+        <div className="flex gap-4 mb-8">
           {(['helpful', 'recent'] as const).map(s => (
             <button
               key={s}
-              className={`text-sm px-3 py-1 rounded-lg transition-colors ${sort === s ? 'bg-[#534AB7] text-white' : 'text-[#a0a0a0] hover:text-white'}`}
+              className={`text-sm font-outfit tracking-wide transition-colors ${sort === s ? 'text-[#fff] font-bold border-b border-[#E53935] pb-1' : 'text-[#666] hover:text-[#a0a0a0] pb-1'}`}
               onClick={() => setSort(s)}
             >
-              {s === 'helpful' ? 'Most helpful' : 'Most recent'}
+              {s === 'helpful' ? 'Most Helpful' : 'Most Recent'}
             </button>
           ))}
         </div>
@@ -203,30 +203,30 @@ export function ItemReviewSection({ target, initialReviews, initialStats, curren
             const initials = review.user ? getInitials(review.user.displayName || review.user.username) : '?';
 
             return (
-              <article key={review.id} className="bg-[#111111] border border-[#2a2a2a] rounded-xl p-4">
+              <article key={review.id} className="py-6 border-b border-white/5 last:border-0 group">
                 {/* Top row */}
-                <div className="flex items-start justify-between gap-2 mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#534AB7] flex items-center justify-center text-xs font-bold text-white flex-shrink-0 overflow-hidden">
+                <div className="flex items-start justify-between gap-4 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[#111] flex items-center justify-center text-sm font-outfit text-white flex-shrink-0 overflow-hidden border border-white/10">
                       {review.user?.avatarUrl
                         ? <img src={review.user.avatarUrl} alt={review.user.displayName} className="w-full h-full object-cover" />
                         : initials}
                     </div>
                     <div>
-                      <a href={`/user/${review.user?.username ?? ''}`} className="text-sm font-semibold text-white hover:text-[#7F77DD] transition-colors">
+                      <a href={`/user/${review.user?.username ?? ''}`} className="text-base font-outfit font-medium text-white hover:text-[#E53935] transition-colors">
                         {review.user?.displayName || review.user?.username || 'Anonymous'}
                       </a>
                       {review.user?.level && (
-                        <span className="ml-2 text-xs text-[#534AB7] bg-[#534AB7]/10 px-1.5 py-0.5 rounded">
+                        <span className="ml-2 text-[0.65rem] font-mono text-[#E53935] bg-[#E53935]/10 px-1.5 py-0.5 rounded uppercase">
                           {review.user.level}
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#666] text-xs">{timeAgo(review.createdAt)}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-[#444] text-[0.7rem] uppercase tracking-widest">{timeAgo(review.createdAt)}</span>
                     {isOwn && (
-                      <div className="flex gap-1">
+                      <div className="flex gap-2">
                         <button
                           className="text-[#a0a0a0] text-xs hover:text-white px-2 py-0.5 rounded transition-colors"
                           onClick={() => { setEditReview(review); setModalOpen(true); }}
@@ -245,15 +245,15 @@ export function ItemReviewSection({ target, initialReviews, initialStats, curren
                 </div>
 
                 {/* Rating */}
-                <div className="flex items-center gap-2 mb-2">
-                  <HalfStarDisplay rating={review.rating} size={14} />
-                  <span className="text-xs text-[#7F77DD]">{getRatingLabel(review.rating)}</span>
+                <div className="flex items-center gap-2 mb-3">
+                  <HalfStarDisplay rating={review.rating} size={16} />
+                  <span className="text-xs font-mono text-[#E53935] tracking-wide">{getRatingLabel(review.rating)}</span>
                 </div>
 
                 {/* Body */}
                 {review.body && (
                   <p
-                    className={`text-[#a0a0a0] text-sm leading-relaxed ${review.hasSpoiler && !revealed ? 'blur-sm cursor-pointer select-none' : ''}`}
+                    className={`font-outfit text-[#c7c7c7] text-[1.05rem] leading-[1.8] ${review.hasSpoiler && !revealed ? 'blur-md cursor-pointer select-none opacity-60' : ''}`}
                     onClick={() => review.hasSpoiler && setSpoilerRevealed(prev => new Set([...prev, review.id]))}
                     title={review.hasSpoiler && !revealed ? 'Click to reveal spoiler' : undefined}
                   >

@@ -148,13 +148,13 @@ export function ListsClient({ initialLists }: Props) {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-white">My Lists</h1>
+      <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
+        <h1 className="text-3xl font-playfair font-bold text-white tracking-tight">My Lists</h1>
         <button
           onClick={() => setCreating(true)}
-          className="bg-[#534AB7] text-white rounded-lg px-4 py-2 hover:bg-[#4a42a3] transition-colors font-medium text-sm"
+          className="button button-primary py-1.5 px-4 text-sm font-outfit"
         >
-          Create list
+          Create List
         </button>
       </div>
 
@@ -174,45 +174,41 @@ export function ListsClient({ initialLists }: Props) {
           {lists.map(list => (
             <div
               key={list.id}
-              className="bg-[#111111] border border-[#2a2a2a] rounded-xl overflow-hidden hover:border-[#333] transition-colors"
+              className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden hover:border-[#E53935]/30 transition-all hover:shadow-glow hover:-translate-y-1 group"
               style={{ position: 'relative' }}
             >
-              <a href={`/lists/${list.id}`} style={{ display: 'block' }}>
+              <a href={`/lists/${list.id}`} className="block">
                 <ArtworkCollage artworks={[]} />
-                <div style={{ padding: '12px 12px 4px' }}>
-                  <p className="text-white text-sm font-semibold truncate">{list.title}</p>
-                  <p className="text-[#a0a0a0] text-xs">0 items</p>
+                <div className="p-4 bg-gradient-to-t from-[#050505] to-[#0a0a0a]">
+                  <p className="text-white text-base font-playfair font-semibold truncate tracking-wide">{list.title}</p>
+                  <p className="text-[#666] font-mono text-[0.65rem] uppercase tracking-widest mt-1">0 items</p>
                 </div>
               </a>
-              <div style={{ padding: '4px 12px 12px', borderTop: '1px solid #2a2a2a', marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.75rem', color: list.isPublic ? '#1D9E75' : '#666' }}>
+              <div className="px-4 pb-4 pt-2 border-t border-white/5 mt-2 flex justify-between items-center group-hover:border-white/10 transition-colors">
+                <span className="font-mono text-[0.65rem] uppercase tracking-widest" style={{ color: list.isPublic ? '#1D9E75' : '#666' }}>
                   {list.isPublic ? 'Public' : 'Private'}
                 </span>
-                <div style={{ position: 'relative' }}>
+                <div className="relative">
                   <button
                     onClick={() => setMenuOpenId(menuOpenId === list.id ? null : list.id)}
-                    style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '1rem', padding: '2px 6px' }}
-                  >⋯</button>
+                    className="text-[#666] hover:text-white transition-colors"
+                  >
+                    ⋯
+                  </button>
                   {menuOpenId === list.id && (
-                    <div style={{ position: 'absolute', right: 0, bottom: '100%', background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: 8, overflow: 'hidden', minWidth: 160, zIndex: 10 }}>
+                    <div className="absolute right-0 bottom-full mb-1 z-20 bg-[#111] border border-white/10 rounded-lg overflow-hidden min-w-[140px] shadow-2xl animate-fade-in">
                       <a
                         href={`/lists/${list.id}`}
-                        style={{ display: 'block', padding: '8px 14px', color: '#fff', fontSize: '0.8125rem', textDecoration: 'none' }}
+                        className="block w-full text-left px-4 py-2.5 font-outfit text-sm text-[#e0e0e0] hover:bg-white/5 transition-colors"
                         onClick={() => setMenuOpenId(null)}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#222')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                      >Edit</a>
+                      >Edit List</a>
                       <button
                         onClick={() => handleTogglePublic(list)}
-                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 14px', color: '#fff', fontSize: '0.8125rem', background: 'none', border: 'none', cursor: 'pointer' }}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#222')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                      >Make {list.isPublic ? 'private' : 'public'}</button>
+                        className="block w-full text-left px-4 py-2.5 font-outfit text-sm text-[#e0e0e0] hover:bg-white/5 transition-colors"
+                      >Make {list.isPublic ? 'Private' : 'Public'}</button>
                       <button
                         onClick={() => { setMenuOpenId(null); setDeletingId(list.id); }}
-                        style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 14px', color: '#E24B4A', fontSize: '0.8125rem', background: 'none', border: 'none', cursor: 'pointer' }}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#222')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'none')}
+                        className="block w-full text-left px-4 py-2.5 font-outfit text-sm text-[#E53935] hover:bg-[#E53935]/10 transition-colors border-t border-white/5"
                       >Delete</button>
                     </div>
                   )}

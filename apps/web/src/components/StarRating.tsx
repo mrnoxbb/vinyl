@@ -93,21 +93,23 @@ export function StarRating({ rating, onChange, readonly = false, size = 32 }: St
 function StarSvg({ size, fill }: { size: number; fill: number }) {
   const id = `star-clip-${Math.round(fill * 10)}`;
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 2px 8px rgba(229,57,53,0.2))' }}>
       <defs>
         <clipPath id={id}>
-          <rect x="0" y="0" width={24 * fill} height="24" />
+          <rect x="0" y="0" width={24 * fill} height="24" style={{ transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }} />
         </clipPath>
       </defs>
       {/* Background (empty) star */}
       <path
         d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-        fill="#2a2a2a"
+        fill="rgba(255,255,255,0.05)"
+        stroke="rgba(255,255,255,0.1)"
+        strokeWidth="1"
       />
       {/* Filled portion */}
       <path
         d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
-        fill="#534AB7"
+        fill="#E53935"
         clipPath={`url(#${id})`}
       />
     </svg>
