@@ -2,6 +2,51 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { ReviewKind } from "../types/review";
 
+export async function followUser(client: SupabaseClient, targetUserId: string): Promise<void> {
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await client
+    .from("follows")
+    .insert({ follower_id: user.id, following_id: targetUserId });
+  if (error) throw error;
+}
+
+export async function unfollowUser(client: SupabaseClient, targetUserId: string): Promise<void> {
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await client
+    .from("follows")
+    .delete()
+    .eq("follower_id", user.id)
+    .eq("following_id", targetUserId);
+  if (error) throw error;
+}
+
+export async function isFollowing(
+  client: SupabaseClient,
+  followerId: string,
+  followingId: string
+): Promise<boolean> {
+  const { data } = await client
+    .from("follows")
+    .select("id")
+    .eq("follower_id", followerId)
+    .eq("following_id", followingId)
+    .maybeSingle();
+  return data !== null;
+}
+
+export async function getFollowCounts(
+  client: SupabaseClient,
+  userId: string
+): Promise<{ followers: number; following: number }> {
+  const [f1, f2] = await Promise.all([
+    client.from("follows").select("*", { count: "exact", head: true }).eq("following_id", userId),
+    client.from("follows").select("*", { count: "exact", head: true }).eq("follower_id", userId),
+  ]);
+  return { followers: f1.count ?? 0, following: f2.count ?? 0 };
+}
+
 export interface NotificationRecord {
   id: string;
   recipientId: string;
@@ -67,7 +112,30 @@ export async function markNotificationRead(
     .update({ read: true })
     .eq("id", notificationId);
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
+}
+
+export async function markAllNotificationsRead(client: SupabaseClient): Promise<void> {
+  const userId = await requireCurrentUserId(client);
+  const { error } = await client
+    .from("notifications")
+    .update({ read: true })
+    .eq("recipient_id", userId)
+    .eq("read", false);
+
+  if (error) throw error;
+}
+
+export async function fetchUnreadCount(client: SupabaseClient): Promise<number> {
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) return 0;
+
+  const { count, error } = await client
+    .from("notifications")
+    .select("*", { count: "exact", head: true })
+    .eq("recipient_id", user.id)
+    .eq("read", false);
+
+  if (error) return 0;
+  return count ?? 0;
 }

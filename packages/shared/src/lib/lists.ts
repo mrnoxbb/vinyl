@@ -41,6 +41,35 @@ async function requireCurrentUserId(client: SupabaseClient): Promise<string> {
   return user.id;
 }
 
+export async function fetchUserLists(
+  client: SupabaseClient,
+  userId: string,
+  includePrivate = false
+): Promise<UserList[]> {
+  let query = client
+    .from("lists")
+    .select("*")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false });
+
+  if (!includePrivate) {
+    query = query.eq("is_public", true);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    id: row.id as string,
+    userId: row.user_id as string,
+    title: row.title as string,
+    description: (row.description as string | null) ?? null,
+    isPublic: Boolean(row.is_public),
+    createdAt: row.created_at as string,
+    updatedAt: row.updated_at as string
+  }));
+}
+
 export async function fetchPublicLists(
   client: SupabaseClient,
   limit = 20

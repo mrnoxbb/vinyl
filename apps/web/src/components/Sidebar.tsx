@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
+import { fetchUnreadCount } from '@vinyl/shared/lib/notifications';
 import { getInitials } from '@vinyl/shared/lib/utils';
 import { createClient } from '../lib/supabase/client';
 
@@ -20,6 +21,7 @@ export function Sidebar() {
   const [username, setUsername] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const supabase = createClient();
@@ -29,8 +31,14 @@ export function Sidebar() {
       setUsername(meta?.username ?? data.user.email?.split('@')[0] ?? null);
       setDisplayName(meta?.display_name ?? meta?.username ?? null);
       setAvatarUrl(meta?.avatar_url ?? null);
+      fetchUnreadCount(supabase).then(setUnreadCount).catch(() => {});
     });
   }, []);
+
+  // Clear badge when on notifications page
+  useEffect(() => {
+    if (pathname === '/notifications') setUnreadCount(0);
+  }, [pathname]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -59,7 +67,14 @@ export function Sidebar() {
               className="sidebar-link"
               style={active ? { borderColor: '#534AB7', background: 'rgba(83,74,183,0.1)' } : undefined}
             >
-              <strong>{link.label}</strong>
+              <strong style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {link.label}
+                {link.href === '/notifications' && unreadCount > 0 && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 18, height: 18, borderRadius: 9, background: '#E24B4A', color: '#fff', fontSize: '0.7rem', fontWeight: 700, padding: '0 4px' }}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </strong>
             </Link>
           );
         })}
