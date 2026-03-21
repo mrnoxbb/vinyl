@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "VINYL",
+    "slug": "vinyl",
+    "scheme": "vinyl",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0a0a0a",
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "splash": {
+      "backgroundColor": "#0a0a0a"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0a0a0a"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "backgroundColor": "#0a0a0a"
+    }
+  }
+}
