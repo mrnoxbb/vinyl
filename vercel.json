@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm --filter @vinyl/web build",
+  "installCommand": "pnpm install",
+  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs"
+}
