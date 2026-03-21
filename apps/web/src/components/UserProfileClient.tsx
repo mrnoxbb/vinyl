@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import type { Review } from '@vinyl/shared/types/review';
 import type { UserList } from '@vinyl/shared/lib/lists';
+import type { Badge } from '@vinyl/shared/lib/gamification';
 import { followUser, unfollowUser } from '@vinyl/shared/lib/notifications';
 import { getInitials, timeAgo } from '@vinyl/shared/lib/utils';
 
@@ -22,11 +23,30 @@ type Profile = {
   isCriticVerified: boolean;
 };
 
+type BadgeDef = {
+  icon: string;
+  label: string;
+  bg: string;
+  border: string;
+  color: string;
+  description: string;
+};
+
+const BADGE_DEFS: Record<string, BadgeDef> = {
+  streak_7:       { icon: '🔥', label: '7-Day Streak',   bg: '#2D1A00', border: '#BA7517', color: '#BA7517', description: 'Reviewed music 7 days in a row' },
+  streak_30:      { icon: '🔥', label: '30-Day Streak',  bg: '#2D1A00', border: '#EF9F27', color: '#EF9F27', description: 'Reviewed music 30 days in a row' },
+  streak_100:     { icon: '🔥', label: '100-Day Streak', bg: '#2D1A00', border: '#FAC775', color: '#FAC775', description: 'Reviewed music 100 days in a row' },
+  first_review:   { icon: '⭐', label: 'First Review',   bg: '#1A1A2E', border: '#534AB7', color: '#7F77DD', description: 'Posted your first review' },
+  reviews_100:    { icon: '📝', label: '100 Reviews',    bg: '#1A1A2E', border: '#534AB7', color: '#AFA9EC', description: 'Posted 100 reviews' },
+  helpful_critic: { icon: '👍', label: 'Helpful Critic', bg: '#0a1f1a', border: '#1D9E75', color: '#1D9E75', description: 'Received 50+ helpful votes' },
+};
+
 type Props = {
   profile: Profile;
   followCounts: { followers: number; following: number };
   initialReviews: Review[];
   initialLists: UserList[];
+  badges: Badge[];
   isOwnProfile: boolean;
   initialFollowing: boolean;
   currentUserId: string | null;
@@ -47,6 +67,7 @@ export function UserProfileClient({
   followCounts,
   initialReviews,
   initialLists,
+  badges,
   isOwnProfile,
   initialFollowing,
   currentUserId,
@@ -167,6 +188,32 @@ export function UserProfileClient({
             </div>
           )}
         </div>
+
+        {/* Badge shelf */}
+        {badges.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-[#1a1a1a]">
+            {badges.map(badge => {
+              const def = BADGE_DEFS[badge.badgeType];
+              if (!def) return null;
+              return (
+                <span
+                  key={badge.id}
+                  title={def.description}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    padding: '4px 10px', borderRadius: 9999,
+                    background: def.bg, border: `1px solid ${def.border}`,
+                    color: def.color, fontSize: '0.75rem', fontWeight: 500,
+                    cursor: 'default',
+                  }}
+                >
+                  <span style={{ fontSize: '0.875rem' }}>{def.icon}</span>
+                  {def.label}
+                </span>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Tabs */}

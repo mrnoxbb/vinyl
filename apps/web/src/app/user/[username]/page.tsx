@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { fetchUserReviews } from '@vinyl/shared/lib/reviews';
 import { fetchUserLists } from '@vinyl/shared/lib/lists';
 import { getFollowCounts, isFollowing } from '@vinyl/shared/lib/notifications';
+import { fetchBadges } from '@vinyl/shared/lib/gamification';
 
 import { createClient } from '../../../lib/supabase/server';
 import { UserProfileClient } from '../../../components/UserProfileClient';
@@ -49,10 +50,11 @@ export default async function UserPage({ params }: Props) {
 
   const profileId = profileRow.id as string;
 
-  const [followCounts, reviews, lists, authResult] = await Promise.all([
+  const [followCounts, reviews, lists, badges, authResult] = await Promise.all([
     getFollowCounts(supabase, profileId).catch(() => ({ followers: 0, following: 0 })),
     fetchUserReviews(supabase, profileId).catch(() => []),
     fetchUserLists(supabase, profileId, false).catch(() => []),
+    fetchBadges(supabase, profileId).catch(() => []),
     supabase.auth.getUser(),
   ]);
 
@@ -80,6 +82,7 @@ export default async function UserPage({ params }: Props) {
           followCounts={followCounts}
           initialReviews={reviews}
           initialLists={lists}
+          badges={badges}
           isOwnProfile={isOwnProfile}
           initialFollowing={followingAlready}
           currentUserId={currentUser?.id ?? null}
