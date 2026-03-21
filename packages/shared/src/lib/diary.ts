@@ -61,6 +61,17 @@ export async function fetchDiaryEntries(
   }));
 }
 
+export async function deleteDiaryEntry(
+  client: SupabaseClient,
+  entryId: string
+): Promise<void> {
+  const { error } = await client
+    .from("diary_entries")
+    .delete()
+    .eq("id", entryId);
+  if (error) throw error;
+}
+
 export async function createDiaryEntry(
   client: SupabaseClient,
   entry: Omit<DiaryEntry, "id" | "userId" | "createdAt">

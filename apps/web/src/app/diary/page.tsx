@@ -1,21 +1,21 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 
-import { createDiaryEntry } from "@vinyl/shared/lib/diary";
+import { fetchDiaryEntries } from '@vinyl/shared/lib/diary';
 
-import { PageShell } from "../../components/PageShell";
+import { createClient } from '../../lib/supabase/server';
+import { DiaryClient } from '../../components/DiaryClient';
 
-export const metadata: Metadata = {
-  title: "Diary | VINYL"
-};
+export const metadata: Metadata = { title: 'Diary | VINYL' };
 
-export default function DiaryPage() {
+export default async function DiaryPage() {
+  const supabase = await createClient();
+  const entries = await fetchDiaryEntries(supabase).catch(() => []);
+
   return (
-    <PageShell
-      title="Listening Diary"
-      description="The diary route is set up for private listen logging, quick notes, and date-based recap views."
-      eyebrow="Protected"
-    >
-      <span className="page-pill">Diary API ready: {typeof createDiaryEntry === "function" ? "yes" : "no"}</span>
-    </PageShell>
+    <main className="min-h-screen bg-[#0a0a0a]">
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <DiaryClient initialEntries={entries} />
+      </div>
+    </main>
   );
 }
