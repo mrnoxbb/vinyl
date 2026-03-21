@@ -1,21 +1,24 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 
-import { createList } from "@vinyl/shared/lib/lists";
+import { fetchUserLists } from '@vinyl/shared/lib/lists';
 
-import { PageShell } from "../../components/PageShell";
+import { createClient } from '../../lib/supabase/server';
+import { ListsClient } from '../../components/ListsClient';
 
-export const metadata: Metadata = {
-  title: "Lists | VINYL"
-};
+export const metadata: Metadata = { title: 'My Lists | VINYL' };
 
-export default function ListsPage() {
+export default async function ListsPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const lists = user
+    ? await fetchUserLists(supabase, user.id, true).catch(() => [])
+    : [];
+
   return (
-    <PageShell
-      title="Lists"
-      description="This protected route is ready for ranked lists, editorial curation, and collaborative list experiments."
-      eyebrow="Protected"
-    >
-      <span className="page-pill">List API ready: {typeof createList === "function" ? "yes" : "no"}</span>
-    </PageShell>
+    <main className="min-h-screen bg-[#0a0a0a]">
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <ListsClient initialLists={lists} />
+      </div>
+    </main>
   );
 }

@@ -131,6 +131,96 @@ export async function createList(
   };
 }
 
+export interface ListDetail extends UserList {
+  items: ListItem[];
+  ownerUsername: string;
+}
+
+export async function fetchListDetail(
+  client: SupabaseClient,
+  listId: string
+): Promise<ListDetail | null> {
+  const { data: listData, error: listError } = await client
+    .from("lists")
+    .select("*")
+    .eq("id", listId)
+    .single();
+  if (listError || !listData) return null;
+
+  const { data: itemsData } = await client
+    .from("list_items")
+    .select("*")
+    .eq("list_id", listId)
+    .order("position", { ascending: true });
+
+  const { data: userData } = await client
+    .from("users")
+    .select("username")
+    .eq("id", listData.user_id as string)
+    .single();
+
+  return {
+    id: listData.id as string,
+    userId: listData.user_id as string,
+    title: listData.title as string,
+    description: (listData.description as string | null) ?? null,
+    isPublic: Boolean(listData.is_public),
+    createdAt: listData.created_at as string,
+    updatedAt: listData.updated_at as string,
+    ownerUsername: (userData?.username as string) ?? '',
+    items: (itemsData ?? []).map((row) => ({
+      id: row.id as string,
+      listId: row.list_id as string,
+      spotifyId: row.spotify_id as string,
+      entityType: row.entity_type as ReviewKind,
+      title: row.title as string,
+      artist: row.artist as string,
+      artworkUrl: (row.artwork_url as string | null) ?? null,
+      position: Number(row.position),
+      note: (row.note as string | null) ?? null,
+    })),
+  };
+}
+
+export async function updateList(
+  client: SupabaseClient,
+  listId: string,
+  input: { title?: string; description?: string | null; isPublic?: boolean }
+): Promise<void> {
+  const updates: Record<string, unknown> = {};
+  if (input.title !== undefined) updates.title = input.title;
+  if (input.description !== undefined) updates.description = input.description;
+  if (input.isPublic !== undefined) updates.is_public = input.isPublic;
+  const { error } = await client.from("lists").update(updates).eq("id", listId);
+  if (error) throw error;
+}
+
+export async function deleteList(
+  client: SupabaseClient,
+  listId: string
+): Promise<void> {
+  const { error } = await client.from("lists").delete().eq("id", listId);
+  if (error) throw error;
+}
+
+export async function removeListItem(
+  client: SupabaseClient,
+  listItemId: string
+): Promise<void> {
+  const { error } = await client.from("list_items").delete().eq("id", listItemId);
+  if (error) throw error;
+}
+
+export async function reorderListItems(
+  client: SupabaseClient,
+  orderedIds: string[]
+): Promise<void> {
+  const updates = orderedIds.map((id, i) =>
+    client.from("list_items").update({ position: i + 1 }).eq("id", id)
+  );
+  await Promise.all(updates);
+}
+
 export async function addListItem(
   client: SupabaseClient,
   listId: string,
