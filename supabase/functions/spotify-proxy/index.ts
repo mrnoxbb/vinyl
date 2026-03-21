@@ -76,7 +76,7 @@ Deno.serve(async (request) => {
 
   try {
     const body = await request.json();
-    const action = body.action as "search" | "track" | "album" | "artist";
+    const action = body.action as "search" | "track" | "album" | "artist" | "album-tracks";
     const params = (body.params ?? {}) as Record<string, unknown>;
 
     switch (action) {
@@ -116,6 +116,12 @@ Deno.serve(async (request) => {
       case "artist": {
         const id = String(params.id ?? "");
         const data = await fetchSpotify(`/artists/${encodeURIComponent(id)}`);
+        return new Response(JSON.stringify(data), { headers: corsHeaders });
+      }
+
+      case "album-tracks": {
+        const id = String(params.id ?? "");
+        const data = await fetchSpotify(`/albums/${encodeURIComponent(id)}/tracks?limit=50`);
         return new Response(JSON.stringify(data), { headers: corsHeaders });
       }
 

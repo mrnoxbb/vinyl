@@ -1,35 +1,106 @@
-import Link from "next/link";
+'use client';
 
-type SidebarLink = {
-  href: string;
-  label: string;
-  description: string;
-};
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 
-const links: SidebarLink[] = [
-  { href: "/", label: "Home", description: "Protected home feed and activity." },
-  { href: "/explore", label: "Explore", description: "Discovery views and editorials." },
-  { href: "/search", label: "Search", description: "Find tracks, albums, and artists." },
-  { href: "/diary", label: "Diary", description: "Log recent listens." },
-  { href: "/lists", label: "Lists", description: "Curate public and private picks." },
-  { href: "/notifications", label: "Alerts", description: "Follows, likes, and updates." }
+import { getInitials } from '@vinyl/shared/lib/utils';
+import { createClient } from '../lib/supabase/client';
+
+const NAV_LINKS = [
+  { href: '/',              label: 'Home' },
+  { href: '/search',        label: 'Search' },
+  { href: '/explore',       label: 'Explore' },
+  { href: '/notifications', label: 'Notifications' },
 ];
 
 export function Sidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const [username, setUsername] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) return;
+      const meta = data.user.user_metadata;
+      setUsername(meta?.username ?? data.user.email?.split('@')[0] ?? null);
+      setDisplayName(meta?.display_name ?? meta?.username ?? null);
+      setAvatarUrl(meta?.avatar_url ?? null);
+    });
+  }, []);
+
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/login');
+    router.refresh();
+  }
+
+  const initials = displayName ? getInitials(displayName) : username ? getInitials(username) : '?';
+
   return (
     <div className="vinyl-sidebar">
       <div className="sidebar-brand">
-        <h1>VINYL</h1>
-        <p>Social music reviews for people who still care about the album art.</p>
+        <Link href="/" style={{ textDecoration: 'none' }}>
+          <h1 style={{ margin: 0, fontSize: '1.85rem', letterSpacing: '0.08em', color: '#fff' }}>VINYL</h1>
+        </Link>
       </div>
+
       <nav className="sidebar-links" aria-label="Primary">
-        {links.map((link) => (
-          <Link key={link.href} className="sidebar-link" href={link.href}>
-            <strong>{link.label}</strong>
-            <span>{link.description}</span>
+        {NAV_LINKS.map((link) => {
+          const active = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="sidebar-link"
+              style={active ? { borderColor: '#534AB7', background: 'rgba(83,74,183,0.1)' } : undefined}
+            >
+              <strong>{link.label}</strong>
+            </Link>
+          );
+        })}
+        {username && (
+          <Link
+            href={`/user/${username}`}
+            className="sidebar-link"
+            style={pathname.startsWith('/user/') ? { borderColor: '#534AB7', background: 'rgba(83,74,183,0.1)' } : undefined}
+          >
+            <strong>Profile</strong>
           </Link>
-        ))}
+        )}
       </nav>
+
+      {/* User section */}
+      {username ? (
+        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#534AB7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, color: '#fff', flexShrink: 0, overflow: 'hidden' }}>
+            {avatarUrl ? <img src={avatarUrl} alt={displayName ?? username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials}
+          </div>
+          <span style={{ flex: 1, fontSize: '0.875rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {displayName || username}
+          </span>
+          <button
+            type="button"
+            onClick={handleLogout}
+            style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0 }}
+          >
+            Log out
+          </button>
+        </div>
+      ) : (
+        <div style={{ marginTop: 'auto', display: 'flex', gap: '0.5rem' }}>
+          <Link href="/login" style={{ flex: 1, textAlign: 'center', padding: '0.6rem', borderRadius: 8, border: '1px solid #2a2a2a', color: '#a0a0a0', fontSize: '0.875rem' }}>
+            Sign in
+          </Link>
+          <Link href="/signup" style={{ flex: 1, textAlign: 'center', padding: '0.6rem', borderRadius: 8, background: '#534AB7', color: '#fff', fontSize: '0.875rem', fontWeight: 600 }}>
+            Sign up
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

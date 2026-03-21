@@ -1,63 +1,166 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 
-import { MAX_REVIEW_BODY } from "@vinyl/shared/lib/constants";
-import type { ReviewTarget } from "@vinyl/shared/types/review";
+import { MAX_REVIEW_BODY } from '@vinyl/shared/lib/constants';
+import type { Review, ReviewTarget } from '@vinyl/shared/types/review';
+import { submitReview } from '@vinyl/shared/lib/reviews';
 
-import { StarRating } from "./StarRating";
+import { createClient } from '../lib/supabase/client';
+import { HalfStarDisplay } from './HalfStarDisplay';
+import { StarRating } from './StarRating';
 
 type ReviewModalProps = {
-  open: boolean;
-  target: ReviewTarget;
-  initialRating?: number;
-  onClose?: () => void;
-  onSubmit?: (payload: { rating: number; body: string }) => void;
+  target: ReviewTarget | null;
+  onClose: () => void;
+  onSuccess: (review: Review) => void;
 };
 
-export function ReviewModal({
-  open,
-  target,
-  initialRating = 4,
-  onClose,
-  onSubmit
-}: ReviewModalProps) {
-  const [rating, setRating] = useState(initialRating);
-  const [body, setBody] = useState("");
+export function ReviewModal({ target, onClose, onSuccess }: ReviewModalProps) {
+  const [rating, setRating] = useState(0);
+  const [body, setBody] = useState('');
+  const [hasSpoiler, setHasSpoiler] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  if (!open) {
-    return null;
+  // Reset form when a new target is opened
+  useEffect(() => {
+    if (target) {
+      setRating(0);
+      setBody('');
+      setHasSpoiler(false);
+      setError('');
+    }
+  }, [target?.spotifyId]);
+
+  // Close on Escape
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  // Close on backdrop click
+  function handleBackdropClick(e: React.MouseEvent) {
+    if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+      onClose();
+    }
   }
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!target || rating === 0) return;
+    setError('');
+    setLoading(true);
+    const supabase = createClient();
+    try {
+      const review = await submitReview(supabase, target, { rating, body: body || null, hasSpoiler });
+      onSuccess(review);
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to post review. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (!target) return null;
+
+  const remaining = MAX_REVIEW_BODY - body.length;
+  const nearLimit = remaining < 40;
+
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true">
-      <div className="modal-panel">
-        <div>
-          <p className="page-eyebrow">Draft Review</p>
-          <h2 className="modal-title">{target.title}</h2>
-          <p className="page-description">{target.artist}</p>
-        </div>
-        <StarRating value={rating} onChange={setRating} />
-        <textarea
-          className="modal-textarea"
-          maxLength={MAX_REVIEW_BODY}
-          placeholder="Write a quick first impression, standout lyric, or context for the rating."
-          rows={5}
-          value={body}
-          onChange={(event) => setBody(event.target.value)}
-        />
-        <div className="modal-actions">
-          <button className="button" type="button" onClick={onClose}>
-            Cancel
-          </button>
+    <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={handleBackdropClick}>
+      <div ref={panelRef} className="modal-panel" style={{ maxWidth: 480 }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+          <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'center', minWidth: 0 }}>
+            {target.artworkUrl ? (
+              <img src={target.artworkUrl} alt={target.title} style={{ width: 64, height: 64, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
+            ) : (
+              <div style={{ width: 64, height: 64, borderRadius: 8, background: '#1a1a1a', flexShrink: 0 }} />
+            )}
+            <div style={{ minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: '0.7rem', color: '#666', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>
+                {target.kind}
+              </p>
+              <h2 style={{ margin: '0.15rem 0 0', fontSize: '1.1rem', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {target.title}
+              </h2>
+              <p style={{ margin: '0.1rem 0 0', fontSize: '0.85rem', color: '#a0a0a0' }}>{target.artist}</p>
+            </div>
+          </div>
           <button
-            className="button button-primary"
             type="button"
-            onClick={() => onSubmit?.({ rating, body })}
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '1.25rem', lineHeight: 1, padding: '0.25rem', flexShrink: 0 }}
+            aria-label="Close"
           >
-            Save Review
+            ×
           </button>
         </div>
+
+        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
+          {/* Star rating */}
+          <div>
+            <StarRating rating={rating} onChange={setRating} size={32} />
+            {rating > 0 && (
+              <p style={{ margin: '0.4rem 0 0', fontSize: '0.8rem', color: '#7F77DD' }}>
+                <HalfStarDisplay rating={rating} size={12} showLabel />
+              </p>
+            )}
+          </div>
+
+          {/* Review body */}
+          <div style={{ position: 'relative' }}>
+            <textarea
+              className="modal-textarea"
+              maxLength={MAX_REVIEW_BODY}
+              placeholder="Write your review… (optional)"
+              rows={5}
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              style={{ resize: 'vertical' }}
+            />
+            <span style={{
+              position: 'absolute', bottom: '0.6rem', right: '0.75rem',
+              fontSize: '0.75rem', color: nearLimit ? '#E24B4A' : '#666',
+              pointerEvents: 'none',
+            }}>
+              {remaining}
+            </span>
+          </div>
+
+          {/* Spoiler toggle */}
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.875rem', color: '#a0a0a0' }}>
+            <input
+              type="checkbox"
+              checked={hasSpoiler}
+              onChange={(e) => setHasSpoiler(e.target.checked)}
+              style={{ accentColor: '#534AB7' }}
+            />
+            Contains spoilers
+          </label>
+
+          {error && <p style={{ margin: 0, color: '#E24B4A', fontSize: '0.85rem' }}>{error}</p>}
+
+          {/* Actions */}
+          <div className="modal-actions">
+            <button className="button" type="button" onClick={onClose} disabled={loading}>
+              Cancel
+            </button>
+            <button
+              className="button button-primary"
+              type="submit"
+              disabled={rating === 0 || loading}
+            >
+              {loading ? 'Posting…' : 'Post Review'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

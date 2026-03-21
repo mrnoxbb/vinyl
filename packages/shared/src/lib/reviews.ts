@@ -349,3 +349,112 @@ export async function unlikeReview(
     throw error;
   }
 }
+
+export async function fetchUserReviews(
+  client: SupabaseClient,
+  userId: string,
+  kind?: ReviewKind
+): Promise<Review[]> {
+  const kinds: ReviewKind[] = kind ? [kind] : ["track", "album", "artist"];
+  const results: Review[] = [];
+
+  for (const k of kinds) {
+    const { data, error } = await client
+      .from(reviewTables[k])
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    for (const row of data ?? []) {
+      results.push(mapStoredReview(k, row as StoredReviewRow));
+    }
+  }
+
+  return results.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
+export async function fetchItemReviews(
+  client: SupabaseClient,
+  spotifyId: string,
+  entityType: ReviewKind
+): Promise<Review[]> {
+  const idCol = entityType === "track" ? "track_id" : entityType === "album" ? "album_id" : "artist_id";
+
+  const { data, error } = await client
+    .from(reviewTables[entityType])
+    .select("*, users!inner(username, display_name, avatar_url, level)")
+    .eq(idCol, spotifyId)
+    .order("helpful_votes", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => {
+    const r = row as StoredReviewRow & {
+      users?: { username?: string; display_name?: string; avatar_url?: string; level?: UserLevel };
+    };
+    const review = mapStoredReview(entityType, r);
+    if (r.users) {
+      review.user = {
+        id: r.user_id,
+        username: r.users.username ?? r.user_id,
+        displayName: r.users.display_name ?? r.users.username ?? r.user_id,
+        avatarUrl: r.users.avatar_url ?? null,
+        level: r.users.level ?? "Listener"
+      };
+    }
+    return review;
+  });
+}
+
+export async function fetchItemStats(
+  client: SupabaseClient,
+  spotifyId: string,
+  entityType: ReviewKind
+): Promise<{ avgRating: number; reviewCount: number; distribution: Record<string, number> }> {
+  const idCol = entityType === "track" ? "track_id" : entityType === "album" ? "album_id" : "artist_id";
+
+  const { data, error } = await client
+    .from(reviewTables[entityType])
+    .select("rating")
+    .eq(idCol, spotifyId);
+
+  if (error) throw error;
+
+  const ratings = (data ?? []).map((r) => Number((r as { rating: number }).rating));
+  const reviewCount = ratings.length;
+  const avgRating = reviewCount > 0 ? ratings.reduce((s, r) => s + r, 0) / reviewCount : 0;
+
+  const steps = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0];
+  const distribution: Record<string, number> = {};
+  for (const s of steps) distribution[s.toFixed(1)] = 0;
+  for (const r of ratings) {
+    const key = r.toFixed(1);
+    if (key in distribution) distribution[key]++;
+  }
+
+  return { avgRating: Math.round(avgRating * 10) / 10, reviewCount, distribution };
+}
+
+export async function getUserReviewForItem(
+  client: SupabaseClient,
+  userId: string,
+  spotifyId: string,
+  kind: ReviewKind
+): Promise<Review | null> {
+  const idCol = kind === "track" ? "track_id" : kind === "album" ? "album_id" : "artist_id";
+
+  const { data, error } = await client
+    .from(reviewTables[kind])
+    .select("*")
+    .eq("user_id", userId)
+    .eq(idCol, spotifyId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+  return mapStoredReview(kind, data as StoredReviewRow);
+}

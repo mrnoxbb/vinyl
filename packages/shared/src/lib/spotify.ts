@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Album, Artist, Track } from "../types/music";
 
-type SpotifyProxyAction = "search" | "track" | "album" | "artist";
+type SpotifyProxyAction = "search" | "track" | "album" | "artist" | "album-tracks";
 
 type SpotifySearchResponse = {
   tracks?: {
@@ -151,4 +151,12 @@ export async function getArtist(
 ): Promise<Artist> {
   const data = await invokeSpotifyProxy<SpotifyArtist>(client, "artist", { id });
   return mapArtist(data);
+}
+
+export async function getAlbumTracks(
+  client: SupabaseClient,
+  id: string
+): Promise<Track[]> {
+  const data = await invokeSpotifyProxy<{ items?: SpotifyTrack[] }>(client, "album-tracks", { id });
+  return (data.items ?? []).map(mapTrack);
 }
