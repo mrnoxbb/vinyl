@@ -6,6 +6,7 @@ node_modules/
 dist/
 .expo/
 .turbo/
+*.tsbuildinfo
 supabase/.branches/
 supabase/.temp/
 pnpm-debug.log*
