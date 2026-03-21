@@ -10,6 +10,26 @@ import { createClient } from '../lib/supabase/client';
 import { HalfStarDisplay } from './HalfStarDisplay';
 import { StarRating } from './StarRating';
 
+const STREAK_MILESTONES = new Set([7, 30, 100]);
+const MILESTONE_BADGE: Record<number, string> = {
+  7: 'streak_7',
+  30: 'streak_30',
+  100: 'streak_100',
+};
+
+// Simple toast shown at bottom-right
+function StreakToast({ streak, onDone }: { streak: number; onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 3000);
+    return () => clearTimeout(t);
+  }, [onDone]);
+  return (
+    <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 200, background: '#111111', border: '1px solid #BA7517', borderRadius: 12, padding: '12px 16px', color: '#BA7517', fontSize: '0.875rem', fontWeight: 500, animation: 'fadeIn 0.3s ease' }}>
+      🔥 {streak} day streak!
+    </div>
+  );
+}
+
 type ReviewModalProps = {
   target: ReviewTarget | null;
   onClose: () => void;
@@ -35,6 +55,8 @@ export function ReviewModal({
   const [hasSpoiler, setHasSpoiler] = useState(initialSpoiler ?? false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [streakToast, setStreakToast] = useState(0); // non-milestone streak
+  const [milestoneCelebration, setMilestoneCelebration] = useState(0); // milestone streak
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Sync when edit props change
@@ -88,6 +110,27 @@ export function ReviewModal({
         review = await submitReview(supabase, target, { rating, body: body || null, hasSpoiler });
       }
       onSuccess(review);
+
+      // Check streak after successful submit (new reviews only)
+      if (!existingReviewId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('review_streak')
+            .eq('id', user.id)
+            .single();
+          const streak = Number(userData?.review_streak ?? 0);
+          if (streak > 1) {
+            if (STREAK_MILESTONES.has(streak)) {
+              setMilestoneCelebration(streak);
+              return; // Don't close modal yet — show celebration first
+            } else {
+              setStreakToast(streak);
+            }
+          }
+        }
+      }
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save review. Please try again.');
@@ -98,11 +141,48 @@ export function ReviewModal({
 
   if (!target) return null;
 
+  // Milestone celebration replaces modal content briefly
+  if (milestoneCelebration > 0) {
+    const badgeLabel = MILESTONE_BADGE[milestoneCelebration];
+    const milestoneLabel = badgeLabel?.replace('streak_', '').replace('_', '-');
+    return (
+      <>
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div ref={panelRef} className="modal-panel" style={{ maxWidth: 400, textAlign: 'center' }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>🔥</div>
+            <h2 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 700, margin: '0 0 8px' }}>
+              {milestoneCelebration}-Day Streak!
+            </h2>
+            <p style={{ color: '#a0a0a0', fontSize: '0.95rem', margin: '0 0 12px' }}>
+              You&apos;ve reviewed music {milestoneCelebration} days in a row
+            </p>
+            {badgeLabel && (
+              <p style={{ color: '#BA7517', fontSize: '0.875rem', marginBottom: 20 }}>
+                🏆 You earned the {milestoneLabel}-Day Streak badge!
+              </p>
+            )}
+            <button
+              className="button button-primary"
+              onClick={() => { setMilestoneCelebration(0); onClose(); }}
+              style={{ minWidth: 120 }}
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+        <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }`}</style>
+      </>
+    );
+  }
+
   const remaining = MAX_REVIEW_BODY - body.length;
   const nearLimit = remaining < 40;
   const isEdit = Boolean(existingReviewId);
 
   return (
+    <>
+    {streakToast > 0 && <StreakToast streak={streakToast} onDone={() => setStreakToast(0)} />}
+    <style>{`@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }`}</style>
     <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={handleBackdropClick}>
       <div ref={panelRef} className="modal-panel" style={{ maxWidth: 480 }}>
         {/* Header */}
@@ -194,5 +274,6 @@ export function ReviewModal({
         </form>
       </div>
     </div>
+    </>
   );
 }
