@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { LEVEL_THRESHOLDS } from "./constants";
 import type { User, UserLevel } from "../types/user";
 
 export interface Badge {
@@ -8,13 +9,6 @@ export interface Badge {
   badgeType: string;
   awardedAt: string;
 }
-
-export const LEVEL_THRESHOLDS: Record<UserLevel, number> = {
-  Listener: 0,
-  Critic: 10,
-  Connoisseur: 50,
-  Legend: 200
-};
 
 export async function fetchBadges(
   client: SupabaseClient,
