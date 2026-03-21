@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import type { Review, ReviewTarget } from '@vinyl/shared/types/review';
-import { deleteReview, fetchItemReviews } from '@vinyl/shared/lib/reviews';
+import { deleteReview, fetchItemReviews, getUserHelpfulVotes, unvoteHelpful, voteHelpful } from '@vinyl/shared/lib/reviews';
 import { getInitials, getRatingLabel, timeAgo } from '@vinyl/shared/lib/utils';
 
 import { createClient } from '../lib/supabase/client';
@@ -31,6 +31,18 @@ export function ItemReviewSection({ target, initialReviews, initialStats, curren
   const [deleteError, setDeleteError] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [spoilerRevealed, setSpoilerRevealed] = useState<Set<string>>(new Set());
+  // Helpful votes: set of review IDs the current user has voted
+  const [helpfulVoted, setHelpfulVoted] = useState<Set<string>>(new Set());
+  // Local helpful vote counts (overrides review.helpfulVotes for optimistic UI)
+  const [helpfulCounts, setHelpfulCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!currentUserId || reviews.length === 0) return;
+    const supabase = createClient();
+    getUserHelpfulVotes(supabase, currentUserId, reviews.map(r => r.id))
+      .then(voted => setHelpfulVoted(new Set(voted)))
+      .catch(() => {});
+  }, [currentUserId, reviews.length]);
 
   const sorted = [...reviews].sort((a, b) =>
     sort === 'helpful'
@@ -71,6 +83,38 @@ export function ItemReviewSection({ target, initialReviews, initialStats, curren
       setDeleteError(err instanceof Error ? err.message : 'Failed to delete review.');
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function handleHelpful(reviewId: string) {
+    if (!currentUserId) { router.push('/login'); return; }
+    const kind = target.kind;
+    const voted = helpfulVoted.has(reviewId);
+    // Optimistic update
+    setHelpfulVoted(prev => {
+      const next = new Set(prev);
+      voted ? next.delete(reviewId) : next.add(reviewId);
+      return next;
+    });
+    setHelpfulCounts(prev => ({
+      ...prev,
+      [reviewId]: (prev[reviewId] ?? reviews.find(r => r.id === reviewId)?.helpfulVotes ?? 0) + (voted ? -1 : 1),
+    }));
+    const supabase = createClient();
+    try {
+      if (voted) await unvoteHelpful(supabase, reviewId, kind);
+      else await voteHelpful(supabase, reviewId, kind);
+    } catch {
+      // Revert on failure
+      setHelpfulVoted(prev => {
+        const next = new Set(prev);
+        voted ? next.add(reviewId) : next.delete(reviewId);
+        return next;
+      });
+      setHelpfulCounts(prev => ({
+        ...prev,
+        [reviewId]: (prev[reviewId] ?? reviews.find(r => r.id === reviewId)?.helpfulVotes ?? 0) + (voted ? 1 : -1),
+      }));
     }
   }
 
@@ -218,6 +262,28 @@ export function ItemReviewSection({ target, initialReviews, initialStats, curren
                 )}
                 {review.hasSpoiler && !revealed && (
                   <p className="text-xs text-[#666] mt-1">⚠ Contains spoilers — click to reveal</p>
+                )}
+
+                {/* Helpful button */}
+                {!isOwn && (
+                  <div className="flex items-center gap-3 mt-3 pt-3 border-t border-[#1a1a1a]">
+                    <button
+                      onClick={() => handleHelpful(review.id)}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs transition-colors ${
+                        helpfulVoted.has(review.id)
+                          ? 'bg-[#1D9E75]/20 border border-[#1D9E75] text-[#1D9E75]'
+                          : 'border border-[#2a2a2a] text-[#a0a0a0] hover:border-[#444] hover:text-white'
+                      }`}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
+                      </svg>
+                      Helpful{' '}
+                      {(helpfulCounts[review.id] ?? review.helpfulVotes) > 0 && (
+                        <span>{helpfulCounts[review.id] ?? review.helpfulVotes}</span>
+                      )}
+                    </button>
+                  </div>
                 )}
               </article>
             );

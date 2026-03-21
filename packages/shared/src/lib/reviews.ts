@@ -439,6 +439,49 @@ export async function fetchItemStats(
   return { avgRating: Math.round(avgRating * 10) / 10, reviewCount, distribution };
 }
 
+export async function voteHelpful(
+  client: SupabaseClient,
+  reviewId: string,
+  reviewType: ReviewKind
+): Promise<void> {
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await client
+    .from("helpful_votes")
+    .insert({ user_id: user.id, review_type: reviewType, review_id: reviewId });
+  if (error) throw error;
+}
+
+export async function unvoteHelpful(
+  client: SupabaseClient,
+  reviewId: string,
+  reviewType: ReviewKind
+): Promise<void> {
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  const { error } = await client
+    .from("helpful_votes")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("review_type", reviewType)
+    .eq("review_id", reviewId);
+  if (error) throw error;
+}
+
+export async function getUserHelpfulVotes(
+  client: SupabaseClient,
+  userId: string,
+  reviewIds: string[]
+): Promise<string[]> {
+  if (reviewIds.length === 0) return [];
+  const { data } = await client
+    .from("helpful_votes")
+    .select("review_id")
+    .eq("user_id", userId)
+    .in("review_id", reviewIds);
+  return (data ?? []).map((r) => r.review_id as string);
+}
+
 export async function getUserReviewForItem(
   client: SupabaseClient,
   userId: string,
